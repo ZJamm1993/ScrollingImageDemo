@@ -13,6 +13,7 @@
 		1CA28463231927B4001AC69E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1CA28462231927B4001AC69E /* Assets.xcassets */; };
 		1CA28466231927B4001AC69E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1CA28464231927B4001AC69E /* LaunchScreen.storyboard */; };
 		1CA28469231927B4001AC69E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1CA28468231927B4001AC69E /* main.m */; };
+		1CA28471231927F6001AC69E /* AdvertiseView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1CA28470231927F6001AC69E /* AdvertiseView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,8 @@
 		1CA28465231927B4001AC69E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1CA28467231927B4001AC69E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1CA28468231927B4001AC69E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		1CA2846F231927F6001AC69E /* AdvertiseView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AdvertiseView.h; sourceTree = "<group>"; };
+		1CA28470231927F6001AC69E /* AdvertiseView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AdvertiseView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +70,8 @@
 				1CA28464231927B4001AC69E /* LaunchScreen.storyboard */,
 				1CA28467231927B4001AC69E /* Info.plist */,
 				1CA28468231927B4001AC69E /* main.m */,
+				1CA2846F231927F6001AC69E /* AdvertiseView.h */,
+				1CA28470231927F6001AC69E /* AdvertiseView.m */,
 			);
 			path = ScrollingImageDemo;
 			sourceTree = "<group>";
@@ -141,6 +146,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1CA28471231927F6001AC69E /* AdvertiseView.m in Sources */,
 				1CA2845E231927B4001AC69E /* ViewController.m in Sources */,
 				1CA28469231927B4001AC69E /* main.m in Sources */,
 				1CA2845B231927B4001AC69E /* AppDelegate.m in Sources */,
