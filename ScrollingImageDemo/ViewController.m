@@ -11,6 +11,8 @@
 
 @interface ViewController ()
 
+@property (weak, nonatomic) IBOutlet AdvertiseView *adview;
+
 @end
 
 @implementation ViewController
@@ -19,13 +21,11 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    AdvertiseView *ad = [[AdvertiseView alloc] initWithFrame:CGRectMake(40, 40, 200, 140)];
-    [ad setShowingAdvertiseCount:4 contentRequest:^(AdvertiseCell *cell, NSInteger index) {
+    [self.adview setShowingAdvertiseCount:4 contentRequest:^(AdvertiseCell *cell, NSInteger index) {
         cell.title = @(index).stringValue;
-    } selection:^(AdvertiseView *adView, NSInteger index) {
-        
+    } selection:^(id adView, NSInteger index) {
+        NSLog(@"%@", adView);
     }];
-    [self.view addSubview:ad];
 }
 
 

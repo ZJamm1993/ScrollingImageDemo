@@ -18,11 +18,9 @@
 @class AdvertiseView;
 
 typedef void (^AdvertiseViewContentRequestHandler)(AdvertiseCell *cell, NSInteger index);
-typedef void (^AdvertiseViewSelectionHandler)(AdvertiseView *adView, NSInteger index);
+typedef void (^AdvertiseViewSelectionHandler)(AdvertiseCell *cell, NSInteger index);
 
 @interface AdvertiseView : UIView
-
-+ (instancetype)defaultAdvertiseView;
 
 - (void)setShowingAdvertiseCount:(NSInteger)count contentRequest:(AdvertiseViewContentRequestHandler)contentRequest selection:(AdvertiseViewSelectionHandler)selection;
 

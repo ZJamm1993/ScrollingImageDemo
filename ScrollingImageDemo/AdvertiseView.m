@@ -12,15 +12,28 @@
 
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, copy) AdvertiseViewSelectionHandler selectionHandler;
 
 @end
 
 @implementation AdvertiseCell
 
+- (instancetype)init {
+    self = [super init];
+    [self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapGesture)]];
+    return self;
+}
+
+- (void)tapGesture {
+    if (self.selectionHandler) {
+        self.selectionHandler(self, self.tag);
+    }
+}
+
 - (UIImageView *)imageView {
     if (!_imageView) {
         _imageView = [[UIImageView alloc] init];
-        _imageView.backgroundColor = [UIColor colorWithHue:(arc4random() % 256) / 200.5 saturation:1 brightness:1 alpha:1];
+        _imageView.backgroundColor = [UIColor colorWithHue:(arc4random() % 256) / 200.5 saturation:0.5 brightness:1 alpha:1];
         [self insertSubview:_imageView atIndex:0];
     }
     return _imageView;
@@ -54,7 +67,7 @@
 
 @end
 
-const CGFloat advertiseViewAutoScrollTime = 2.0;
+const CGFloat advertiseViewAutoScrollTime = 3.0;
 
 @interface AdvertiseView()<UIScrollViewDelegate> {
     NSTimer *timer;
@@ -63,39 +76,41 @@ const CGFloat advertiseViewAutoScrollTime = 2.0;
     NSInteger _contentCount;
 }
 
+@property (nonatomic, readonly) BOOL isOnlyOne;
+
 @end
 
 @implementation AdvertiseView
 
-+ (instancetype)defaultAdvertiseView {
-    AdvertiseView *a = [[AdvertiseView alloc] initWithFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.width, [[UIScreen mainScreen] bounds].size.width * 0.45)];
-    a.backgroundColor = [UIColor lightGrayColor];
-    return a;
+- (BOOL)isOnlyOne {
+    return _contentCount <= 1;
 }
 
 - (void)setShowingAdvertiseCount:(NSInteger)count contentRequest:(AdvertiseViewContentRequestHandler)contentRequest selection:(AdvertiseViewSelectionHandler)selection {
     _contentCount = count;
-    
-    if (!timer) {
-        timer = [NSTimer scheduledTimerWithTimeInterval:advertiseViewAutoScrollTime target:self selector:@selector(scrollToNextPage) userInfo:nil repeats:YES];
-        [timer setFireDate:[NSDate dateWithTimeIntervalSinceNow:advertiseViewAutoScrollTime]];
-    }
     
     NSArray *subs = [self subviews];
     for (UIView *vi in subs) {
         [vi removeFromSuperview];
     }
     
-    CGFloat w = self.bounds.size.width;
-    CGFloat h = self.bounds.size.height;
+    [timer invalidate];
+    if (self.isOnlyOne == NO) {
+        timer = [NSTimer scheduledTimerWithTimeInterval:advertiseViewAutoScrollTime target:self selector:@selector(scrollToNextPage) userInfo:nil repeats:YES];
+        [timer setFireDate:[NSDate dateWithTimeIntervalSinceNow:advertiseViewAutoScrollTime]];
+    }
     
-    scroll = [[UIScrollView alloc] initWithFrame:self.bounds];
+    scroll = [[UIScrollView alloc] init];
     
     scroll.scrollsToTop = NO;
     scroll.pagingEnabled = YES;
     scroll.showsHorizontalScrollIndicator = NO;
     scroll.showsVerticalScrollIndicator = NO;
-    scroll.delegate = self;
+    scroll.bounces = NO;
+    scroll.backgroundColor = [UIColor yellowColor];
+    if (self.isOnlyOne == NO) {
+        scroll.delegate = self;
+    }
     
     [self addSubview:scroll];
     
@@ -105,19 +120,14 @@ const CGFloat advertiseViewAutoScrollTime = 2.0;
         if (contentRequest) {
             contentRequest(cell, i);
         }
+        cell.selectionHandler = selection;
         [scroll addSubview:cell];
     }
-    
-    scroll.contentSize = CGSizeMake(w * _contentCount, h);
-    scroll.contentOffset = CGPointMake(0, 0);
-    
-    [self scrollToPage:0];
     
     pageControl = [[UIPageControl alloc] init];
     pageControl.numberOfPages = _contentCount;
     pageControl.pageIndicatorTintColor = [UIColor grayColor];
     pageControl.currentPageIndicatorTintColor = [UIColor whiteColor];
-    pageControl.center = CGPointMake(w / 2, h - 20);
     [self addSubview:pageControl];
     
     if (_contentCount <= 1) {
@@ -127,17 +137,61 @@ const CGFloat advertiseViewAutoScrollTime = 2.0;
 
 - (void)scrollToPage:(NSInteger)page {
     //    NSLog(@"to %d",page);
-    if (page >= _contentCount) {
-        page = 0;
-    }
-    CGFloat offx = scroll.frame.size.width * page;
+    CGFloat offx = scroll.frame.size.width * (page + 1);
     [scroll setContentOffset:CGPointMake(offx, 0) animated:YES];
     
     //    pageControl.currentPage = page;
 }
 
+- (UIView *)mySubviewWithTag:(NSInteger)tag {
+    for (UIView *view in scroll.subviews) {
+        if (view.tag == tag) {
+            return view;
+        }
+    }
+    return nil;
+}
+
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     pageControl.currentPage = [self currentPage];
+    
+    CGFloat offX = scrollView.contentOffset.x;
+    CGFloat width = self.bounds.size.width;
+    CGFloat minOffsetX = width;
+    CGFloat maxOffsetX = (_contentCount) * width;
+    // 实现循环滚动 _4 0 1 2 3 4 _0
+    if (offX < minOffsetX) {
+        // 把最后一个放在0;
+        NSInteger tag = _contentCount - 1;
+        UIView *viewWithLastTag = [self mySubviewWithTag:tag];
+        CGRect frame = viewWithLastTag.frame;
+        frame.origin.x = minOffsetX - width;
+        viewWithLastTag.frame = frame;
+        if (offX <= minOffsetX - width) {
+            // 偷偷位移至最后
+            frame.origin.x = (tag + 1) * width;
+            viewWithLastTag.frame = frame;
+            scrollView.contentOffset = CGPointMake(frame.origin.x, 0);
+        }
+    } else if (offX > maxOffsetX) {
+        // 把第0个放在最后;
+        NSInteger tag = 0;
+        UIView *viewWithFirstTag = [self mySubviewWithTag:tag]; // fuck original viewWithTag which return self if tag == 0
+        CGRect frame = viewWithFirstTag.frame;
+        frame.origin.x = maxOffsetX + width;
+        viewWithFirstTag.frame = frame;
+        if (offX >= maxOffsetX + width) {
+            // 偷偷偷位移至第0
+            frame.origin.x = (tag + 1) * width;
+            viewWithFirstTag.frame = frame;
+            scrollView.contentOffset = CGPointMake(frame.origin.x, 0);
+        }
+    } else {
+        for (UIView *view in scroll.subviews) {
+            NSInteger index = (view.tag + 1);
+            view.frame = CGRectMake(index * self.bounds.size.width, 0, self.bounds.size.width, self.bounds.size.height);
+        }
+    }
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
@@ -149,7 +203,8 @@ const CGFloat advertiseViewAutoScrollTime = 2.0;
 }
 
 - (NSInteger)currentPage {
-    return (NSInteger)(scroll.contentOffset.x / scroll.frame.size.width);
+    // fake offset
+    return (NSInteger)(scroll.contentOffset.x / scroll.frame.size.width) - 1;
 }
 
 - (NSInteger)numbersOfPage {
@@ -171,10 +226,15 @@ const CGFloat advertiseViewAutoScrollTime = 2.0;
     [super layoutSubviews];
     
     scroll.frame = self.bounds;
+    scroll.contentSize = self.isOnlyOne ? self.bounds.size : CGSizeMake((2 + _contentCount) * self.bounds.size.width, self.bounds.size.height);
     pageControl.center = CGPointMake(self.bounds.size.width / 2, self.bounds.size.height - 20);
     for (UIView *view in scroll.subviews) {
-        view.frame = CGRectMake(view.tag * self.bounds.size.width, 0, self.bounds.size.width, self.bounds.size.height);
-//        [view layoutIfNeeded];
+        NSInteger index = self.isOnlyOne ? view.tag : (view.tag + 1);
+        view.frame = CGRectMake(index * self.bounds.size.width, 0, self.bounds.size.width, self.bounds.size.height);
+        [view layoutIfNeeded];
+    }
+    if (self.isOnlyOne == NO) {
+        scroll.contentOffset = CGPointMake(self.bounds.size.width, 0);
     }
 }
 
