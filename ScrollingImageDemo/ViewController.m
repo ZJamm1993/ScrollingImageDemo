@@ -22,7 +22,12 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     [self.adview setShowingAdvertiseCount:4 contentRequest:^(AdvertiseCell *cell, NSInteger index) {
-        cell.title = @(index).stringValue;
+        if (index == 0 || index == 2) {
+            cell.title = @"First Line";
+        } else {
+            cell.title = @"First\nSecond Line";
+        }
+        cell.title = [NSString stringWithFormat:@"%@: %@", @(index).stringValue, cell.title];
     } selection:^(id adView, NSInteger index) {
         NSLog(@"%@", adView);
     }];
